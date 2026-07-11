@@ -29,6 +29,8 @@
  *   embedded   — if true, render inline (no fixed overlay chrome).
  *   hideSubject — if true, drop the subject identity header (name/title/manager) but keep the
  *                risk pills. For hosts that already show the person's identity (e.g. PM's profile).
+ *   hideHeader  — if true, drop the ENTIRE top header card (identity + risk pills). For hosts that
+ *                render their own summary chrome (e.g. PM's accordion header carries the risk chips).
  */
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -166,7 +168,7 @@ const sechead = { display: 'flex', alignItems: 'center', gap: 11, marginBottom: 
 const h2s = { fontSize: 16, fontWeight: 700, letterSpacing: '-.02em', margin: 0 };
 const tagS = (bg, fg) => ({ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', padding: '3px 9px', borderRadius: 6, background: bg, color: fg });
 
-export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, onSavePlan, onClose, embedded, hideSubject }) {
+export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, onSavePlan, onClose, embedded, hideSubject, hideHeader }) {
   const [data, setData] = useState(unwrap(dataProp) || null);
   const [loading, setLoading] = useState(!dataProp);
   const [err, setErr] = useState(null);
@@ -212,6 +214,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
     <div style={{ color: C.ink, fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif', fontSize: 14 }}>
       {tip && <div ref={tipRef} style={{ position: 'fixed', left: tip.x, top: tip.y, zIndex: 1100, background: C.ink, color: '#fff', fontSize: 11.5, padding: '8px 11px', borderRadius: 8, pointerEvents: 'none', boxShadow: '0 6px 20px rgba(0,0,0,.28)', maxWidth: 240 }}><b>{tip.name}</b> · {tip.week}<br />{tip.val}</div>}
 
+      {!hideHeader && (<>
       {/* Header */}
       <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 16, padding: '18px 20px', boxShadow: card.boxShadow }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -237,6 +240,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
           </div>
         </div>
       </div>
+      </>)}
 
       {/* Manager's read vs signals */}
       {managerRead && (
