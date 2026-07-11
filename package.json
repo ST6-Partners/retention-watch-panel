@@ -1,0 +1,45 @@
+{
+  "name": "@st6-partners/retention-watch-panel",
+  "version": "1.0.0",
+  "description": "Presentational Mode B Retention Watch (skip-level) panel. Consumes the SP-005 snake_case wire { data } payload directly, so Signal and Performance Management render identical code from one source (build once). Shared Library SC-037.",
+  "license": "UNLICENSED",
+  "private": true,
+  "author": "ST6 Partners",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./RetentionWatchPanel": "./src/RetentionWatchPanel.jsx"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "keywords": [
+    "st6",
+    "signal",
+    "retention-watch",
+    "skip-level",
+    "sp-005",
+    "shared-library",
+    "sc-037"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ST6-Partners/retention-watch-panel.git"
+  },
+  "scripts": {
+    "check": "echo 'Source-shipped package: the consuming app bundler transpiles the .jsx. Optional build (tsup/rollup) is a finalize step — see README.'"
+  }
+}
