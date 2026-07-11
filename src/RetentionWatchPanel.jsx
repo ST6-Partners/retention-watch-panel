@@ -27,6 +27,8 @@
  *                When omitted, the Retention Plan is read-only.
  *   onClose    — called when the drill-down overlay is dismissed.
  *   embedded   — if true, render inline (no fixed overlay chrome).
+ *   hideSubject — if true, drop the subject identity header (name/title/manager) but keep the
+ *                risk pills. For hosts that already show the person's identity (e.g. PM's profile).
  */
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -164,7 +166,7 @@ const sechead = { display: 'flex', alignItems: 'center', gap: 11, marginBottom: 
 const h2s = { fontSize: 16, fontWeight: 700, letterSpacing: '-.02em', margin: 0 };
 const tagS = (bg, fg) => ({ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', padding: '3px 9px', borderRadius: 6, background: bg, color: fg });
 
-export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, onSavePlan, onClose, embedded }) {
+export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, onSavePlan, onClose, embedded, hideSubject }) {
   const [data, setData] = useState(unwrap(dataProp) || null);
   const [loading, setLoading] = useState(!dataProp);
   const [err, setErr] = useState(null);
@@ -213,10 +215,18 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
       {/* Header */}
       <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 16, padding: '18px 20px', boxShadow: card.boxShadow }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: `linear-gradient(135deg,${C.brand},#8b5cf6)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20 }}>{subject.avatar_initials || '?'}</div>
+          {!hideSubject && (
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: `linear-gradient(135deg,${C.brand},#8b5cf6)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20 }}>{subject.avatar_initials || '?'}</div>
+          )}
           <div style={{ flex: '1 1 auto' }}>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.02em' }}>{subject.name || 'Unknown'}</div>
-            <div style={{ color: C.ink2, fontWeight: 500, fontSize: 13 }}>{[subject.title, subject.dept, subject.manager_name && `reports to ${subject.manager_name}`].filter(Boolean).join(' · ')}</div>
+            {hideSubject ? (
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.ink2 }}>Retention signals</div>
+            ) : (
+              <>
+                <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.02em' }}>{subject.name || 'Unknown'}</div>
+                <div style={{ color: C.ink2, fontWeight: 500, fontSize: 13 }}>{[subject.title, subject.dept, subject.manager_name && `reports to ${subject.manager_name}`].filter(Boolean).join(' · ')}</div>
+              </>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <span style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700 }}>Risk now</span>
