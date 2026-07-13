@@ -1,6 +1,6 @@
 {
   "name": "@st6-partners/retention-watch-panel",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Presentational Mode B Retention Watch (skip-level) panel. Consumes the SP-005 snake_case wire { data } payload directly, so Signal and Performance Management render identical code from one source (build once). Shared Library SC-037.",
   "license": "UNLICENSED",
   "author": "ST6 Partners",

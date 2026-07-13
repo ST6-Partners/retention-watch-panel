@@ -252,6 +252,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
               <MRow k="Flight risk" v={managerRead.flight_risk} />
               <MRow k="Business impact" v={managerRead.impact} />
               <MRow k="Regrettable if lost" v={managerRead.regrettable_if_lost} />
+              {managerRead.pip != null && <MRow k="PIP" v={managerRead.pip} />}
               {managerRead.note && <MRow k="Note" v={`"${managerRead.note}"`} />}
             </div>
             <div style={{ padding: '14px 16px' }}>
