@@ -235,6 +235,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
             <span style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700 }}>Risk now</span>
             {status.risk_label && <Pill bg="#fdecec" fg="#b91c1c" dot={C.red}>{`Flight risk ${status.risk_label}`}{status.risk_probability != null ? ` (${status.risk_probability}%)` : ''}</Pill>}
             {status.impact_label && <Pill bg="#fdf3e3" fg="#b45309" dot={C.amber}>{`Impact ${status.impact_label}`}</Pill>}
+            {status.departure_date && <Pill bg="#fdecec" fg="#b91c1c" dot={C.red}>{`Departing ${status.departure_date}`}{status.departure_date_status ? ` (${status.departure_date_status === 'confirmed' ? 'Confirmed' : 'Estimated'})` : ''}</Pill>}
             {status.regrettable_if_lost === true && <Pill bg="#eef2ff" fg={C.brand} dot={C.brand}>Regrettable if lost</Pill>}
             <Pill bg="#e7f7ee" fg="#15803d" dot={C.green}>Currently employed</Pill>
           </div>
@@ -253,6 +254,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
               <MRow k="Business impact" v={managerRead.impact} />
               <MRow k="Regrettable if lost" v={managerRead.regrettable_if_lost} />
               {managerRead.pip != null && <MRow k="PIP" v={managerRead.pip} />}
+              {managerRead.departure_date != null && <MRow k="Departure date" v={`${managerRead.departure_date}${managerRead.departure_date_status ? ` (${managerRead.departure_date_status === 'confirmed' ? 'Confirmed' : 'Estimated'})` : ''}`} />}
               {managerRead.note && <MRow k="Note" v={`"${managerRead.note}"`} />}
             </div>
             <div style={{ padding: '14px 16px' }}>

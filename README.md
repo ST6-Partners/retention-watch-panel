@@ -99,7 +99,9 @@ envelope also carries `meta { signal_person_id, router_employee_id, window_weeks
     "impact_label": "Critical",            // string | null
     "impact_value": 4,                     // number 1..5 | null
     "regrettable_if_lost": true,           // bool | null  (read-only, from DD-001)
-    "currently_employed": true
+    "currently_employed": true,
+    "departure_date": "2026-12-31",        // string YYYY-MM-DD | null — only when flight risk is Certain (100%), RCDO-DD-982
+    "departure_date_status": "estimated"   // "estimated" | "confirmed" | null
   },
   "weeks": ["Apr 20", "Apr 27"],           // x-axis labels (one per window week)
   "week_starts": ["2026-04-20", "..."],    // ISO Monday of each week
@@ -132,6 +134,8 @@ envelope also carries `meta { signal_person_id, router_employee_id, window_weeks
     "flight_risk": "Low (25%)",
     "impact": "Critical",
     "regrettable_if_lost": "Yes",
+    "departure_date": "2026-12-31",        // string | null — renders a "Departure date" row (only at Certain, RCDO-DD-982)
+    "departure_date_status": "estimated",  // "estimated" | "confirmed" | null
     "note": "no concerns",
     "signals": {
       "flight_trajectory": "Rising → High",
