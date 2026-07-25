@@ -419,27 +419,32 @@ function RetentionPlan({ userId, initial, managerName, onSavePlan }) {
   return (
     <div style={card}>
       <div style={sechead}><h2 style={h2s} title="everything above is assembled for you — this is the only new input">Retention Plan</h2><span style={tagS('#eef2ff', C.brand)}>your call</span></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px 28px', marginTop: 10, ...(readOnly ? { pointerEvents: 'none', opacity: 0.92 } : null) }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginTop: 10, ...(readOnly ? { pointerEvents: 'none', opacity: 0.92 } : null) }}>
+        {/* 1 · Diagnose — full-width rows keep the chip clouds on 1-2 clean lines */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>What's driving the risk</div>
+          <div title="Same taxonomy as the exit-form reasons — a driver named here maps straight through if the person does leave." style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em', cursor: 'default' }}>What's driving the risk</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{Object.keys(REASON_TAX).map(c => <span key={c} onClick={() => { setCat(c); setReason(REASON_TAX[c][0]); }} style={chip(c === cat)}>{c}</span>)}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 9, alignItems: 'center' }}><span style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: C.faint }}>Because:</span>{(REASON_TAX[cat] || []).map(r => <span key={r} onClick={() => setReason(r)} style={chip(r === reason, null, { fontSize: 12, padding: '6px 13px' })}>{r}</span>)}</div>
-          <div style={{ fontSize: 11, color: C.mut, marginTop: 9 }}>Same taxonomy as the exit-form reasons — a driver named here maps straight through if the person does leave.</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 9, alignItems: 'center' }}><span style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: C.faint }}>Because:</span>{(REASON_TAX[cat] || []).map(r => <span key={r} onClick={() => setReason(r)} style={{ ...chip(r === reason, null, { fontSize: 12, padding: '6px 13px' }), ...(r === reason ? { background: '#eef2ff', color: C.brand, borderColor: C.brand } : {}) }}>{r}</span>)}</div>
         </div>
+        {/* 2 · Decide — control + read-only caveat share the row */}
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>Retention priority</div>
-          <div style={{ display: 'inline-flex', border: `1px solid ${C.line}`, borderRadius: 10, overflow: 'hidden' }}>
-            {prioBtn('keep', 'Fight to keep', C.green)}{prioBtn('monitor', 'Monitor', C.amber)}{prioBtn('ride', 'Let ride', C.mut)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'inline-flex', border: `1px solid ${C.line}`, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+              {prioBtn('keep', 'Fight to keep', C.green)}{prioBtn('monitor', 'Monitor', C.amber)}{prioBtn('ride', 'Let ride', C.mut)}
+            </div>
+            <span style={{ fontSize: 11, color: C.faint, flex: '1 1 240px', minWidth: 0 }}>Regrettable if lost carries read-only from Signal's weekly assessment — not a verdict.</span>
           </div>
-          <div style={{ fontSize: 11.5, color: C.brand, marginTop: 9, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: C.brand }} />Regrettable if lost carried read-only from Signal's weekly assessment — not a verdict.</div>
         </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>Your intervention plan</div>
-          <textarea value={planText} onChange={e => setPlanText(e.target.value)} placeholder="Forward plan — what will you do, by when?" style={{ width: '100%', border: `1px solid ${C.line}`, borderRadius: 10, padding: '11px 13px', fontFamily: 'inherit', fontSize: 13, resize: 'vertical', minHeight: 96 }} />
-        </div>
+        {/* 3 · Act — chips first (fast input); the written plan elaborates them */}
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>Actions</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{ACTIONS.map(a => <span key={a} onClick={() => toggleAction(a)} style={{ ...chip(actions.includes(a)), ...(actions.includes(a) ? { background: '#0f766e', borderColor: '#0f766e' } : {}) }}>{a}</span>)}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{ACTIONS.map(a => <span key={a} onClick={() => toggleAction(a)} style={chip(actions.includes(a))}>{a}</span>)}</div>
+        </div>
+        {/* 4 · Commit */}
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>Your intervention plan</div>
+          <textarea value={planText} onChange={e => setPlanText(e.target.value)} placeholder="Forward plan — what will you do, by when?" style={{ width: '100%', border: `1px solid ${C.line}`, borderRadius: 10, padding: '9px 13px', fontFamily: 'inherit', fontSize: 13, resize: 'vertical', minHeight: 58 }} />
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
