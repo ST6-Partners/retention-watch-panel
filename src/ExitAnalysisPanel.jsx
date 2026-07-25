@@ -17,6 +17,8 @@ import {
 } from './core.jsx';
 
 const lab = { fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700 };
+// mm-dd-yy display for ISO dates (07-25-26 design session); non-ISO strings pass through.
+const usDate = (d) => { const m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[2]}-${m[3]}-${m[1].slice(2)}` : (d || '—'); };
 
 function AIRead({ lead, children }) {
   return (
@@ -59,12 +61,12 @@ function ExitHeader({ subject = {}, status = {}, employment = {}, review = {} })
           {status.regrettable === false && sp('#e7f7ee', '#bfe6cf', '#15803d', C.green, 'Non-regrettable')}
           {status.voluntary != null && sp('#fff', C.line, C.ink2, C.brand, status.voluntary ? 'Voluntary' : 'Involuntary')}
           {status.good_leaver === true && sp('#fff', C.line, C.ink2, C.green, 'Good leaver')}
-          {status.exit_date && sp('#f1f3f6', '#f1f3f6', C.mut, null, status.exit_date)}
+          {status.exit_date && sp('#f1f3f6', '#f1f3f6', C.mut, null, `Exited ${usDate(status.exit_date)}`)}
         </div>
       </div>
       <div style={stripWrap}>
-        {cell('Hire date', employment.hire_date || '—')}
-        {cell('In role since', employment.in_role_since || '—')}
+        {cell('Hire date', usDate(employment.hire_date))}
+        {cell('In role since', usDate(employment.in_role_since))}
         {cell('Tenure', employment.tenure || '—')}
         <div style={{ flex: 1, padding: '10px 16px' }}><div style={lab}>Legacy company</div><div style={{ fontSize: 14, fontWeight: 600, marginTop: 3 }}>{employment.legacy_company || 'NA'}{employment.legacy_note && <span style={{ color: C.mut, fontWeight: 400 }}> {employment.legacy_note}</span>}</div></div>
       </div>
