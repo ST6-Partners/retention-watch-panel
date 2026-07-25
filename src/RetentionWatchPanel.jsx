@@ -149,9 +149,9 @@ function SlotRow({ arr }) {
 
 function Band({ label, children }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', borderBottom: `1px solid ${C.hair}`, alignItems: 'center' }}>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: C.ink2, padding: '8px 14px', borderRight: `1px solid ${C.hair}`, height: '100%', display: 'flex', alignItems: 'center' }}>{label}</div>
-      <div style={{ padding: '4px 14px' }}>{children}</div>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', borderBottom: `1px solid ${C.hair}`, alignItems: 'center' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: C.ink2, padding: '6px 12px', borderRight: `1px solid ${C.hair}`, height: '100%', display: 'flex', alignItems: 'center', lineHeight: 1.3 }}>{label}</div>
+      <div style={{ padding: '3px 12px' }}>{children}</div>
     </div>
   );
 }
@@ -311,10 +311,9 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
             <Band label="Coaching Phase"><PhaseBar segments={arc.coaching_phase || []} weeks={weeks} /></Band>
           </Group>
           <Group title="Coaching" color="#7c3aed">
-            <Band label={subject.name ? subject.name.split(/\s+/)[0] : 'Person'}><Chart series={arc.coaching_person || []} opt={{ min: 1, max: 5, dc: cCoach, name: subject.name || 'Coaching', unit: ' / 5' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
-            <Band label="Team avg"><Chart series={arc.team_avg || []} opt={{ min: 1, max: 5, dc: cCoach, name: 'Team avg', unit: ' / 5' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
+            <Band label={<span>1:1 coaching<br /><small style={{ fontWeight: 500, color: C.faint }}>{(subject.name ? subject.name.split(/\s+/)[0] : 'person')} vs team (grey)</small></span>}><Chart multi={[{ name: subject.name || 'Coaching', data: arc.coaching_person || [], dc: cCoach, unit: ' / 5' }, { name: 'Team avg', data: arc.team_avg || [], color: '#94a3b8', unit: ' / 5' }]} opt={{ min: 1, max: 5, name: 'Coaching' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
           </Group>
-          <div style={{ display: 'grid', gridTemplateColumns: '96px 150px 1fr' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '96px 130px 1fr' }}>
             <div style={{ borderRight: `1px solid ${C.hair}` }} /><div style={{ borderRight: `1px solid ${C.hair}` }} />
             <div style={{ padding: '0 14px' }}>
               <svg viewBox={`0 0 ${PW} 18`} width="100%" height="18">

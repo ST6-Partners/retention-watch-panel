@@ -19,7 +19,7 @@ export const cRisk = v => v <= 25 ? C.green : v <= 50 ? C.amber : C.red;
 export const cImp = v => v <= 2 ? C.green : v < 3.5 ? C.amber : C.red;
 export const cPE = v => v >= 80 ? C.green : v >= 55 ? C.amber : C.red;
 export const cCoach = v => v >= 3.5 ? C.green : v >= 2.5 ? C.amber : C.red;
-export const PW = 680, H = 88, X0 = 12, X1 = 666;
+export const PW = 680, H = 56, X0 = 12, X1 = 666;
 export const REASON_TAX = {
   'Hiring Mistake': ['Values', 'Performance', 'Assessments', 'Expectations'],
   'Employee Experience': ['Expectations', 'Compensation', 'Opportunity', 'Manager'],
@@ -46,7 +46,7 @@ export const spill = (v) => {
 export function Chart({ series, multi, opt, weeks, markers, onHover }) {
   const N = weeks.length;
   const X = i => X0 + i * ((X1 - X0) / Math.max(N - 1, 1));
-  const top = 12, bot = H - 14;
+  const top = 9, bot = H - 11;
   const Y = v => bot - ((v - opt.min) / (opt.max - opt.min)) * (bot - top);
   const mk = (markers || []).map((m, k) => (
     <line key={'mk' + k} x1={X(m.idx).toFixed(1)} y1={3} x2={X(m.idx).toFixed(1)} y2={H - 3}
@@ -70,7 +70,7 @@ export function Chart({ series, multi, opt, weeks, markers, onHover }) {
     ln.data.forEach((v, i) => {
       if (v == null) return;
       const col = ln.dc ? ln.dc(v) : ln.color;
-      dots.push(<circle key={`d${li}-${i}`} cx={X(i).toFixed(1)} cy={Y(v).toFixed(1)} r="4" fill={col}
+      dots.push(<circle key={`d${li}-${i}`} cx={X(i).toFixed(1)} cy={Y(v).toFixed(1)} r="3.5" fill={col}
         style={{ cursor: 'pointer' }}
         onMouseEnter={e => onHover(e, `${ln.name || opt.name}`, weeks[i], `${v}${ln.unit || opt.unit || ''}`)}
         onMouseMove={e => onHover(e, `${ln.name || opt.name}`, weeks[i], `${v}${ln.unit || opt.unit || ''}`)}
@@ -78,10 +78,14 @@ export function Chart({ series, multi, opt, weeks, markers, onHover }) {
     });
   });
   const hasData = lines.some(l => l.data.some(v => v != null));
+  if (!hasData) return (
+    <svg viewBox={`0 0 ${PW} 24`} width="100%" height={24} style={{ display: 'block' }}>
+      <text x={PW / 2} y="15" textAnchor="middle" fontSize="10.5" fill={C.faint}>no data in window</text>
+    </svg>
+  );
   return (
     <svg viewBox={`0 0 ${PW} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
       {mk}{fills}{polys}{dots}
-      {!hasData && <text x={PW / 2} y={H / 2} textAnchor="middle" fontSize="11" fill={C.faint}>no data in window</text>}
     </svg>
   );
 }
@@ -106,7 +110,7 @@ export function PhaseBar({ segments, weeks }) {
 // RegBar — parameterized: `color` of the flagged segment(s) and an optional trailing `note`.
 // Mode B (retention): indigo + "flagged — worth keeping". Mode A (exit): red, no note (DD-020).
 export function RegBar({ reg, weeks, color = '#a5b4fc', note = 'flagged — worth keeping' }) {
-  const N = weeks.length, h = 44, bh = 18, by = (h - bh) / 2;
+  const N = weeks.length, h = 28, bh = 14, by = (h - bh) / 2;
   const X = i => X0 + i * ((X1 - X0) / Math.max(N - 1, 1));
   return (
     <svg viewBox={`0 0 ${PW} ${h}`} width="100%" height={h} style={{ display: 'block' }}>
@@ -134,16 +138,16 @@ export function SlotRow({ arr }) {
 
 export function Band({ label, children }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', borderBottom: `1px solid ${C.hair}`, alignItems: 'center' }}>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: C.ink2, padding: '8px 14px', borderRight: `1px solid ${C.hair}`, height: '100%', display: 'flex', alignItems: 'center' }}>{label}</div>
-      <div style={{ padding: '4px 14px' }}>{children}</div>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', borderBottom: `1px solid ${C.hair}`, alignItems: 'center' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: C.ink2, padding: '6px 12px', borderRight: `1px solid ${C.hair}`, height: '100%', display: 'flex', alignItems: 'center', lineHeight: 1.3 }}>{label}</div>
+      <div style={{ padding: '3px 12px' }}>{children}</div>
     </div>
   );
 }
 export function Group({ title, color, children }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', borderBottom: `3px solid ${C.hair}` }}>
-      <div style={{ background: color, color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 8, lineHeight: 1.3 }}>{title}</div>
+      <div style={{ background: `${color}10`, color, borderLeft: `3px solid ${color}`, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 8, lineHeight: 1.3 }}>{title}</div>
       <div>{children}</div>
     </div>
   );
@@ -183,7 +187,7 @@ export function ArcSection({ data, mode = 'retention' }) {
   return (
     <div style={card}>
       {el}
-      <div style={sechead}><h2 style={h2s}>The Arc</h2><span style={tag}>{tagText}</span><span style={{ color: C.faint, fontSize: 12, marginLeft: 'auto' }}>{sdesc}</span></div>
+      <div style={sechead}><h2 style={h2s} title={sdesc}>The Arc</h2><span style={tag}>{tagText}</span><span style={{ color: C.faint, fontSize: 11.5, marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>{isExit ? 'at exit' : `${weeks.length}w → today`}<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.green, display: 'inline-block', marginLeft: 6 }} />good<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.amber, display: 'inline-block', marginLeft: 4 }} />watch<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.red, display: 'inline-block', marginLeft: 4 }} />danger</span></div>
       <div style={{ marginTop: 16, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
         <Group title={<span>Attrition<br />Assessment</span>} color="#e11d48">
           <Band label="Flight Risk"><Chart series={arc.flight_risk || []} opt={{ min: 0, max: 100, dc: cRisk, name: 'Flight Risk', unit: '%' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
@@ -196,10 +200,9 @@ export function ArcSection({ data, mode = 'retention' }) {
           <Band label="Coaching Phase"><PhaseBar segments={arc.coaching_phase || []} weeks={weeks} /></Band>
         </Group>
         <Group title="Coaching" color="#7c3aed">
-          <Band label={subject.name ? subject.name.split(/\s+/)[0] : 'Person'}><Chart series={arc.coaching_person || []} opt={{ min: 1, max: 5, dc: cCoach, name: subject.name || 'Coaching', unit: ' / 5' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
-          <Band label="Team avg"><Chart series={arc.team_avg || []} opt={{ min: 1, max: 5, dc: cCoach, name: 'Team avg', unit: ' / 5' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
+          <Band label={<span>1:1 coaching<br /><small style={{ fontWeight: 500, color: C.faint }}>{(subject.name ? subject.name.split(/\s+/)[0] : 'person')} vs team (grey)</small></span>}><Chart multi={[{ name: subject.name || 'Coaching', data: arc.coaching_person || [], dc: cCoach, unit: ' / 5' }, { name: 'Team avg', data: arc.team_avg || [], color: '#94a3b8', unit: ' / 5' }]} opt={{ min: 1, max: 5, name: 'Coaching' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
         </Group>
-        <div style={{ display: 'grid', gridTemplateColumns: '96px 150px 1fr' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '96px 130px 1fr' }}>
           <div style={{ borderRight: `1px solid ${C.hair}` }} /><div style={{ borderRight: `1px solid ${C.hair}` }} />
           <div style={{ padding: '0 14px' }}>
             <svg viewBox={`0 0 ${PW} 18`} width="100%" height="18">
