@@ -158,13 +158,30 @@ function Band({ label, children }) {
 function Group({ title, color, children }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '96px 1fr', borderBottom: `3px solid ${C.hair}` }}>
-      <div style={{ background: color, color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 8, lineHeight: 1.3 }}>{title}</div>
+      <div style={{ background: `${color}10`, color, borderLeft: `3px solid ${color}`, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 8, lineHeight: 1.3 }}>{title}</div>
       <div>{children}</div>
     </div>
   );
 }
 // Severity tone for the flight-risk pill — a Very Low read must not render as an alarm.
 function shortDate(d) { const m = String(d || '').match(/^\d{4}-(\d{2}-\d{2})/); return m ? m[1] : String(d || ''); }
+// Value-derived tone for the objective-signals rows — tone must follow the value,
+// never the row (a hardcoded red row renders "Stable" as an alarm).
+function sigTone(kind, v) {
+  if (v == null || v === '') return null;
+  const s = String(v).toLowerCase();
+  if (/no data|n\/a/.test(s)) return 'na';
+  if (kind === 'trajectory') return /improv|recover|cool/.test(s) ? 'gd' : /worsen|deterior|redden|rising|declin|escalat/.test(s) ? 'bd' : null;
+  if (kind === 'coaching') {
+    const m = s.match(/([\d.]+)\s*\/\s*5(?:.*?team\s*([\d.]+))?/);
+    if (!m) return null;
+    const me = parseFloat(m[1]), team = m[2] != null ? parseFloat(m[2]) : null;
+    if (team != null) return me < team - 0.3 ? 'bd' : me < team ? 'wn' : me > team + 0.2 ? 'gd' : null;
+    return me < 3 ? 'bd' : me < 3.5 ? 'wn' : 'gd';
+  }
+  if (kind === 'recognition') return /none in|no recognition/.test(s) ? 'bd' : /silent/.test(s) ? 'wn' : 'gd';
+  return null;
+}
 function riskTone(label, prob) {
   const l = String(label || '').toLowerCase();
   const green = { bg: '#e7f7ee', fg: '#15803d', dot: C.green }, amber = { bg: '#fdf3e3', fg: '#b45309', dot: C.amber }, red = { bg: '#fdecec', fg: '#b91c1c', dot: C.red };
@@ -256,10 +273,10 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
       {/* Manager's read vs signals */}
       {managerRead && (
         <div style={card}>
-          <div style={sechead}><h2 style={h2s} title="does the manager see it coming — while there's still time?">Manager's read vs. the signals</h2><span style={tagS('#e0f7fb', '#0e7490')}>Signal · weekly</span></div>
+          <div style={sechead}><h2 style={h2s} title="does the manager see it coming — while there's still time?">Manager's read vs. the signals</h2><span style={tagS('#e0f7fb', '#0e7490')}>{managerRead.as_of ? `Signal · week of ${shortDate(managerRead.as_of)}` : 'Signal · weekly'}</span></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: `1px solid ${C.line}`, borderRadius: 13, overflow: 'hidden', marginTop: 14 }}>
             <div style={{ padding: '14px 16px', borderRight: `1px solid ${C.hair}`, background: '#fbfbfd' }}>
-              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={managerRead.as_of ? `Manager's weekly attrition read · as of ${managerRead.as_of}` : "Manager's weekly attrition read"}>Weekly attrition read{managerRead.as_of ? ` · ${shortDate(managerRead.as_of)}` : ''}</h4>
+              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap' }} title={managerRead.as_of ? `Manager's weekly attrition read · as of ${managerRead.as_of}` : "Manager's weekly attrition read"}>Manager</h4>
               <MRow k="Flight risk" v={managerRead.flight_risk} />
               <MRow k="Business impact" v={managerRead.impact} />
               <MRow k="Regrettable if lost" v={managerRead.regrettable_if_lost} />
@@ -268,11 +285,11 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
               {managerRead.note && <MRow k="Note" v={`"${managerRead.note}"`} />}
             </div>
             <div style={{ padding: '14px 16px' }}>
-              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap' }}>Objective signals</h4>
-              <MRow k="Flight-risk trajectory" v={managerRead.signals?.flight_trajectory} tone="bd" />
-              <MRow k="Coaching (1:1)" v={managerRead.signals?.coaching} tone="bd" />
-              <MRow k="Development" v={managerRead.signals?.development} tone="wn" />
-              <MRow k="Recognition" v={managerRead.signals?.recognition} tone="bd" />
+              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap' }} title="What the objective signals say">Signals</h4>
+              <MRow k="Flight-risk trajectory" v={managerRead.signals?.flight_trajectory} tone={sigTone('trajectory', managerRead.signals?.flight_trajectory)} />
+              <MRow k="Coaching (1:1)" v={managerRead.signals?.coaching} tone={sigTone('coaching', managerRead.signals?.coaching)} />
+              <MRow k="Development" v={managerRead.signals?.development} tone={sigTone('development', managerRead.signals?.development)} />
+              <MRow k="Recognition" v={managerRead.signals?.recognition} tone={sigTone('recognition', managerRead.signals?.recognition)} />
             </div>
           </div>
           {managerRead.verdict && <div style={{ padding: '12px 16px', background: '#fdf3e3', borderTop: '1px solid #f5dca8', fontSize: 12.8, color: '#92400e', marginTop: -1, borderRadius: '0 0 13px 13px' }}>⚠️ <b style={{ color: '#7c2d12' }}>{managerRead.verdict}</b> The weekly call doesn't match the reddening signals — the gap to close now.</div>}
@@ -281,7 +298,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
 
       {/* The Arc */}
       <div style={card}>
-        <div style={sechead}><h2 style={h2s}>The Arc</h2><span style={tagS('#e7f7ee', '#15803d')}>Signal · live</span><span style={{ color: C.faint, fontSize: 12, marginLeft: 'auto' }}>last {weeks.length} weeks → today · dot color = good→bad · red = danger zone</span></div>
+        <div style={sechead}><h2 style={h2s} title={`Trailing ${weeks.length} weeks up to today. Dot color runs good (green) to bad (red); red = danger zone.`}>The Arc</h2><span style={tagS('#e7f7ee', '#15803d')}>Signal · live</span><span style={{ color: C.faint, fontSize: 11.5, marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>{weeks.length}w → today<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.green, display: 'inline-block', marginLeft: 6 }} />good<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.amber, display: 'inline-block', marginLeft: 4 }} />watch<i style={{ width: 8, height: 8, borderRadius: '50%', background: C.red, display: 'inline-block', marginLeft: 4 }} />danger</span></div>
         <div style={{ marginTop: 16, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
           <Group title={<span>Attrition<br />Assessment</span>} color="#e11d48">
             <Band label="Flight Risk"><Chart series={arc.flight_risk || []} opt={{ min: 0, max: 100, dc: cRisk, name: 'Flight Risk', unit: '%' }} weeks={weeks} markers={markers} onHover={onHover} /></Band>
@@ -311,7 +328,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
       {/* Culture Fit & Engagement */}
       {culture.values && culture.values.length > 0 && (
         <div style={card}>
-          <div style={sechead}><h2 style={h2s}>Culture Fit &amp; Engagement</h2><span style={tagS('#e0f7fb', '#0e7490')}>Signal · values</span><span style={{ color: C.faint, fontSize: 12, marginLeft: 'auto' }}>live signals over the last 90 days</span></div>
+          <div style={sechead}><h2 style={h2s} title="live signals over the last 90 days">Culture Fit &amp; Engagement</h2><span style={tagS('#e0f7fb', '#0e7490')}>Signal · values</span></div>
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, marginTop: 12, fontSize: 13 }}>
             <thead><tr>
               <th style={{ textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, padding: '8px 10px', borderBottom: `2px solid ${C.line}`, width: '25%' }}>Value</th>
@@ -344,10 +361,10 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 12 }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: `linear-gradient(135deg,${C.purple},#a855f7)`, color: '#fff', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>AI</div>
             <h2 style={{ ...h2s }}>AI Retention Brief</h2>
-            <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: C.purple, background: '#f3ecfe', padding: '5px 11px', borderRadius: 999 }}>Confidence: {brief.confidence}</span>
+            {(() => { const c = String(brief.confidence || '').toLowerCase(); const t = c === 'high' ? { bg: '#e7f7ee', fg: '#15803d' } : c === 'low' ? { bg: '#f3f4f6', fg: '#4b5563' } : { bg: '#fdf3e3', fg: '#b45309' }; return <span title="AI self-assessed confidence in this synthesis — reflects data coverage and severity" style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: t.fg, background: t.bg, padding: '5px 11px', borderRadius: 999 }}>Confidence: {brief.confidence}</span>; })()}
           </div>
           <div style={{ fontSize: 14.5, lineHeight: 1.7, borderLeft: '3px solid #a855f7', paddingLeft: 15, margin: '4px 0 15px' }}>{brief.verdict}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}>
             <div><h4 style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.06em', color: C.purple, marginBottom: 9 }}>Why now</h4><ul style={{ margin: 0, paddingLeft: 18 }}>{(brief.why_now || []).map((x, i) => <li key={i} style={{ marginBottom: 7, fontSize: 12.8, color: C.ink2 }}>{x}</li>)}</ul></div>
             <div><h4 style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.06em', color: C.purple, marginBottom: 9 }}>Recommended retention moves</h4><ul style={{ margin: 0, paddingLeft: 18 }}>{(brief.moves || []).map((x, i) => <li key={i} style={{ marginBottom: 7, fontSize: 12.8, color: C.ink }}>{x}</li>)}</ul></div>
           </div>
@@ -367,7 +384,7 @@ function Pill({ bg, fg, dot, children }) {
   return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, padding: '4px 9px', borderRadius: 7, border: `1px solid ${C.line}`, background: bg, color: fg }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: dot }} />{children}</span>;
 }
 function MRow({ k, v, tone }) {
-  const col = tone === 'bd' ? C.red : tone === 'wn' ? C.amber : tone === 'gd' ? C.green : C.ink2;
+  const col = tone === 'bd' ? C.red : tone === 'wn' ? C.amber : tone === 'gd' ? C.green : tone === 'na' ? C.faint : C.ink2;
   return <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12.5, padding: '5px 0', borderBottom: `1px solid ${C.hair}` }}><span style={{ color: C.mut }}>{k}</span><span style={{ fontWeight: 600, color: col, textAlign: 'right' }}>{v || '—'}</span></div>;
 }
 
@@ -401,12 +418,12 @@ function RetentionPlan({ userId, initial, managerName, onSavePlan }) {
 
   return (
     <div style={card}>
-      <div style={sechead}><h2 style={h2s}>Retention Plan</h2><span style={tagS('#eef2ff', C.brand)}>your call</span><span style={{ color: C.faint, fontSize: 12, marginLeft: 'auto' }}>everything above is assembled for you — this is the only new input</span></div>
+      <div style={sechead}><h2 style={h2s} title="everything above is assembled for you — this is the only new input">Retention Plan</h2><span style={tagS('#eef2ff', C.brand)}>your call</span></div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px 28px', marginTop: 10, ...(readOnly ? { pointerEvents: 'none', opacity: 0.92 } : null) }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>What's driving the risk</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{Object.keys(REASON_TAX).map(c => <span key={c} onClick={() => { setCat(c); setReason(REASON_TAX[c][0]); }} style={{ ...chip(c === cat), ...(c === cat ? { background: C.red, borderColor: C.red } : {}) }}>{c}</span>)}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 9 }}>{(REASON_TAX[cat] || []).map(r => <span key={r} onClick={() => setReason(r)} style={chip(r === reason, null, { fontSize: 12, padding: '6px 13px' })}>{r}</span>)}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{Object.keys(REASON_TAX).map(c => <span key={c} onClick={() => { setCat(c); setReason(REASON_TAX[c][0]); }} style={chip(c === cat)}>{c}</span>)}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 9, alignItems: 'center' }}><span style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: C.faint }}>Because:</span>{(REASON_TAX[cat] || []).map(r => <span key={r} onClick={() => setReason(r)} style={chip(r === reason, null, { fontSize: 12, padding: '6px 13px' })}>{r}</span>)}</div>
           <div style={{ fontSize: 11, color: C.mut, marginTop: 9 }}>Same taxonomy as the exit-form reasons — a driver named here maps straight through if the person does leave.</div>
         </div>
         <div>
@@ -414,7 +431,7 @@ function RetentionPlan({ userId, initial, managerName, onSavePlan }) {
           <div style={{ display: 'inline-flex', border: `1px solid ${C.line}`, borderRadius: 10, overflow: 'hidden' }}>
             {prioBtn('keep', 'Fight to keep', C.green)}{prioBtn('monitor', 'Monitor', C.amber)}{prioBtn('ride', 'Let ride', C.mut)}
           </div>
-          <div style={{ fontSize: 11.5, color: C.brand, marginTop: 9, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: C.brand }} />Regrettable if lost carried read-only from Signal's weekly assessment (DD-001) — not a verdict.</div>
+          <div style={{ fontSize: 11.5, color: C.brand, marginTop: 9, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: C.brand }} />Regrettable if lost carried read-only from Signal's weekly assessment — not a verdict.</div>
         </div>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.mut, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '.05em' }}>Your intervention plan</div>
