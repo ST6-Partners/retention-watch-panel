@@ -163,6 +163,17 @@ function Group({ title, color, children }) {
     </div>
   );
 }
+// Severity tone for the flight-risk pill — a Very Low read must not render as an alarm.
+function shortDate(d) { const m = String(d || '').match(/^\d{4}-(\d{2}-\d{2})/); return m ? m[1] : String(d || ''); }
+function riskTone(label, prob) {
+  const l = String(label || '').toLowerCase();
+  const green = { bg: '#e7f7ee', fg: '#15803d', dot: C.green }, amber = { bg: '#fdf3e3', fg: '#b45309', dot: C.amber }, red = { bg: '#fdecec', fg: '#b91c1c', dot: C.red };
+  if (/certain|very high|high/.test(l)) return red;
+  if (/moderate|medium/.test(l)) return amber;
+  if (/very low|low|minimal/.test(l)) return green;
+  if (prob != null) return prob >= 60 ? red : prob >= 30 ? amber : green;
+  return amber;
+}
 const card = { background: '#fff', border: `1px solid ${C.line}`, borderRadius: 16, padding: '20px 22px', margin: '16px 0', boxShadow: '0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06)' };
 const sechead = { display: 'flex', alignItems: 'center', gap: 11, marginBottom: 4, flexWrap: 'wrap' };
 const h2s = { fontSize: 16, fontWeight: 700, letterSpacing: '-.02em', margin: 0 };
@@ -219,7 +230,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
       <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 16, padding: '18px 20px', boxShadow: card.boxShadow }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {!hideSubject && (
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: `linear-gradient(135deg,${C.brand},#8b5cf6)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20 }}>{subject.avatar_initials || '?'}</div>
+            <div style={{ width: 56, height: 56, flexShrink: 0, borderRadius: '50%', background: `linear-gradient(135deg,${C.brand},#8b5cf6)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20 }}>{subject.avatar_initials || '?'}</div>
           )}
           <div style={{ flex: '1 1 auto' }}>
             {hideSubject ? (
@@ -232,12 +243,11 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
             )}
           </div>
           <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <span style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700 }}>Risk now</span>
-            {status.risk_label && <Pill bg="#fdecec" fg="#b91c1c" dot={C.red}>{`Flight risk ${status.risk_label}`}{status.risk_probability != null ? ` (${status.risk_probability}%)` : ''}</Pill>}
-            {status.impact_label && <Pill bg="#fdf3e3" fg="#b45309" dot={C.amber}>{`Impact ${status.impact_label}`}</Pill>}
+            {status.risk_label && (() => { const t = riskTone(status.risk_label, status.risk_probability); return <Pill bg={t.bg} fg={t.fg} dot={t.dot}>{`Flight risk ${status.risk_label}`}{status.risk_probability != null ? ` (${status.risk_probability}%)` : ''}</Pill>; })()}
             {status.departure_date && <Pill bg="#fdecec" fg="#b91c1c" dot={C.red}>{`Departing ${status.departure_date}`}{status.departure_date_status ? ` (${status.departure_date_status === 'confirmed' ? 'Confirmed' : 'Estimated'})` : ''}</Pill>}
-            {status.regrettable_if_lost === true && <Pill bg="#eef2ff" fg={C.brand} dot={C.brand}>Regrettable if lost</Pill>}
-            <Pill bg="#e7f7ee" fg="#15803d" dot={C.green}>Currently employed</Pill>
+            {!managerRead && status.impact_label && <Pill bg="#fdf3e3" fg="#b45309" dot={C.amber}>{`Impact ${status.impact_label}`}</Pill>}
+            {!managerRead && status.regrettable_if_lost === true && <Pill bg="#eef2ff" fg={C.brand} dot={C.brand}>Regrettable if lost</Pill>}
+            {status.currently_employed === false && <Pill bg="#f3f4f6" fg="#374151" dot="#6b7280">Exited</Pill>}
           </div>
         </div>
       </div>
@@ -246,10 +256,10 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
       {/* Manager's read vs signals */}
       {managerRead && (
         <div style={card}>
-          <div style={sechead}><h2 style={h2s}>Manager's read vs. the signals</h2><span style={tagS('#e0f7fb', '#0e7490')}>Signal · weekly</span><span style={{ color: C.faint, fontSize: 12, marginLeft: 'auto' }}>does the manager see it coming — while there's still time?</span></div>
+          <div style={sechead}><h2 style={h2s} title="does the manager see it coming — while there's still time?">Manager's read vs. the signals</h2><span style={tagS('#e0f7fb', '#0e7490')}>Signal · weekly</span></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: `1px solid ${C.line}`, borderRadius: 13, overflow: 'hidden', marginTop: 14 }}>
             <div style={{ padding: '14px 16px', borderRight: `1px solid ${C.hair}`, background: '#fbfbfd' }}>
-              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9 }}>Manager's weekly attrition read{managerRead.as_of ? ` · as of ${managerRead.as_of}` : ''}</h4>
+              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={managerRead.as_of ? `Manager's weekly attrition read · as of ${managerRead.as_of}` : "Manager's weekly attrition read"}>Weekly attrition read{managerRead.as_of ? ` · ${shortDate(managerRead.as_of)}` : ''}</h4>
               <MRow k="Flight risk" v={managerRead.flight_risk} />
               <MRow k="Business impact" v={managerRead.impact} />
               <MRow k="Regrettable if lost" v={managerRead.regrettable_if_lost} />
@@ -258,7 +268,7 @@ export default function RetentionWatchPanel({ userId, data: dataProp, fetcher, o
               {managerRead.note && <MRow k="Note" v={`"${managerRead.note}"`} />}
             </div>
             <div style={{ padding: '14px 16px' }}>
-              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9 }}>What the objective signals say</h4>
+              <h4 style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.faint, fontWeight: 700, marginBottom: 9, whiteSpace: 'nowrap' }}>Objective signals</h4>
               <MRow k="Flight-risk trajectory" v={managerRead.signals?.flight_trajectory} tone="bd" />
               <MRow k="Coaching (1:1)" v={managerRead.signals?.coaching} tone="bd" />
               <MRow k="Development" v={managerRead.signals?.development} tone="wn" />
